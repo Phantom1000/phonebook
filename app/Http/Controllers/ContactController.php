@@ -1,0 +1,240 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Contact;
+use App\Phone;
+use App\Location;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
+class ContactController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request, $pub = '')
+    {
+        if ($pub == 'my') {
+            if (Auth::check()) {
+                $contacts = $request->user()->contacts();
+                if ($request->sort == 'name') {
+                    $contacts = $contacts->orderBy('name', 'asc');
+                } else {
+                    $contacts = $contacts->orderBy('created_at', 'desc');
+                }
+                if ($request->q) {
+                    $contacts = $contacts->where('name', 'like', '%' . $request->q . '%');
+                }
+            } else {
+                return redirect()->route('login');
+            }
+        } else {
+            $contacts = Contact::where('isPublic', $pub != 'my');
+            if ($request->sort == 'name') {
+                $contacts = $contacts->orderBy('name', 'asc');
+            } else {
+                $contacts = $contacts->orderBy('created_at', 'desc');
+            }
+            if ($request->q) {
+                $contacts = $contacts->where('name', 'like', '%' . $request->q . '%');
+            }
+        }
+        $contacts = $contacts->paginate(2);
+        return view('contacts.index', compact('contacts', 'pub'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('contacts.create', [
+            'contact' => null,
+            'numbers' => null,
+            'countries' => null,
+            'towns' => null,
+            'adresses' => null
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required|max:255',
+            'photo' => 'image'
+        ]);
+
+        $contact = Contact::create($request->except('nums', 'locs', 'photo'));
+        if ($request->photo) {
+            $contact->photo = $request->file('photo')->store('uploads', 'public');
+        }
+
+        if (!$request->user()->isAdmin) {
+            $contact->users()->attach($request->user());
+        } else {
+            $contact->isPublic = true;
+        }
+
+        $contact->save();
+
+        if ($request->nums)
+            foreach ($request->nums as $num) {
+            Phone::create([
+                'number' => $num,
+                'contact_id' => $contact->id
+            ]);
+        }
+
+        if ($request->locs)
+            for ($i = 0, $n = count($request->locs[0]); $i < $n; $i++) {
+            Location::create([
+                'country' => $request->locs[0][$i],
+                'town' => $request->locs[1][$i],
+                'address' => $request->locs[2][$i],
+                'contact_id' => $contact->id
+            ]);
+        }
+
+        return redirect()->route('contact.index', ['pub' => !$request->user()->isAdmin ? 'my' : '']);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Contact  $contact
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Contact $contact)
+    {
+        return view('contacts.show', compact('contact'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Contact  $contact
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(Contact $contact)
+    {
+        $numbers = $contact->phones()->pluck('number');
+        $countries = $contact->locations()->pluck('country');
+        $towns = $contact->locations()->pluck('town');
+        $addresses = $contact->locations()->pluck('address');
+        return view('contacts.edit', compact('contact', 'numbers', 'countries', 'towns', 'addresses'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Contact  $contact
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Contact $contact)
+    {
+        $this->validate($request, [
+            'name' => 'required|max:255',
+            'photo' => 'image'
+        ]);
+
+        $contact->update($request->except('nums', 'locs'));
+        if ($request->photo) {
+            if ($contact->photo) Storage::disk('public')->delete($contact->photo);
+            $contact->photo = $request->file('photo')->store('uploads', 'public');
+            $contact->save();
+        }
+
+        if ($request->nums) {
+            $contacts = $contact->phones()->get();
+            $n = $countNums = count($request->nums);
+            $m = $countPhones = count($contacts);
+            $flag = true;
+            if ($countNums < $countPhones) {
+                $n = $countPhones;
+                $m = $countNums;
+                $flag = false;
+            }
+            for ($i = 0; $i < $n; $i++) {
+                if ($i < $m) {
+                    $contacts[$i]->update([
+                        'number' => $request->nums[$i]
+                    ]);
+                } else {
+                    if ($flag) {
+                        Phone::create([
+                            'number' => $request->nums[$i],
+                            'contact_id' => $contact->id
+                        ]);
+                    } else {
+                        $contacts[$i]->delete();
+                    }
+                }
+            }
+        }
+
+        if ($request->locs)
+        {
+            $locations = $contact->locations()->get();
+            $n = $countLocs = count($request->locs[0]);
+            $m = $countLocations = count($locations);
+            $flag = true;
+            if ($countLocs < $countLocations) {
+                $n = $countLocations;
+                $m = $countLocs;
+                $flag = false;
+            }
+            for ($i = 0; $i < $n; $i++) {
+                if ($i < $m) {
+                    $locations[$i]->update([
+                        'country' => $request->locs[0][$i],
+                        'town' => $request->locs[1][$i],
+                        'address' => $request->locs[2][$i],
+                    ]);
+                } else {
+                    if ($flag) {
+                        Location::create([
+                        'country' => $request->locs[0][$i],
+                        'town' => $request->locs[1][$i],
+                        'address' => $request->locs[2][$i],
+                        'contact_id' => $contact->id
+                        ]);
+                    } else {
+                        $locations[$i]->delete();
+                    }   
+                }
+            }
+        }
+        return redirect()->route('contact.index', ['pub' => !$request->user()->isAdmin ? 'my' : '']);
+    }
+
+    public function add(Contact $contact, Request $request)
+    {
+        if ($contact->isPublic) $contact->users()->attach($request->user());
+        return redirect()->route('contact.index');
+    }
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Contact  $contact
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Contact $contact, Request $request)
+    {
+        if ($contact->photo) Storage::disk('public')->delete($contact->photo);
+        $contact->delete();
+        return redirect()->route('contact.index', ['pub' => !$request->user()->isAdmin ? 'my' : '']);
+    }
+}
