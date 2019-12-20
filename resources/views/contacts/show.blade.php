@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-4">
-                <img src="{{ asset('storage/' . $contact->photo) }}" alt="Фотография абонента" class="w-20 pb-4">
+                <img src="{{ asset('storage/' . $contact->photo) }}" alt="Фотография абонента" class="w-50 pb-4">
             </div>
             <div class="col-sm-8">
                 <div class="jumbotron">
