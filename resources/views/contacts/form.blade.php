@@ -1,20 +1,33 @@
 <ul class="nav nav-tabs">
     <li class="nav-item">
-        <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true"><i class="fas fa-home"></i> Основное</a>
+        <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true"><i class="fa fa-book"></i> Основное</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="phones-tab" data-toggle="tab" href="#phones" role="tab" aria-controls="phones" aria-selected="true"><i class="far fa-edit"></i> Телефоны</a>
+        <a class="nav-link" id="phones-tab" data-toggle="tab" href="#phones" role="tab" aria-controls="phones" aria-selected="true"><i class="fa fa-phone"></i> Телефоны</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="locations-tab" data-toggle="tab" href="#locations" role="locations" aria-controls="locations" aria-selected="false"><i class="fab fa-html5"></i> Адреса</a>
+        <a class="nav-link" id="locations-tab" data-toggle="tab" href="#locations" role="locations" aria-controls="locations" aria-selected="false"><i class="fa fa-compass"></i> Адреса</a>
     </li>
 </ul>
 
 <div class="tab-content" id="myTabContent">
         <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-            <div class="form-group my-4">
-                <label for="photo">Фото абонента: </label>
-                <input type="file" class="form-control-file" name="photo">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group my-4">
+                        <label for="photo">Фото абонента: </label>
+                        <input type="file" class="form-control-file" name="photo" id="photo">
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group my-4">
+                        <label for="category">Категория: </label>
+                        <select class="form-control" id="category" name="category">
+                            <option>Физическое лицо</option>
+                            <option>Юридическое лицо</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="name">Имя абонента: </label>
@@ -26,8 +39,8 @@
                 @enderror
             </div>
             <div class="form-group">
-                <label for="name">Информация: </label>
-                <textarea name="description" class="form-control" cols="30" rows="10">{{ $contact->description ?? '' }}</textarea>
+                <label for="description">Информация: </label>
+                <textarea id="description" name="description" class="form-control" cols="30" rows="10">{{ $contact->description ?? '' }}</textarea>
             </div>		
         </div>
 

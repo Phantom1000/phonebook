@@ -14,6 +14,7 @@ Auth::routes();
 
 Route::get('/{pub?}', 'ContactController@index')->name('contact.index');
 Route::get('/add/{contact}', 'ContactController@add')->name('contact.add');
+Route::get('/delete/{contact}', 'ContactController@delete')->name('contact.delete');
 
 Route::resource('contact', 'ContactController', ['except' => ['index', 'show']])->middleware('auth');
 Route::get('/contact/{contact}', 'ContactController@show')->name('contact.show');

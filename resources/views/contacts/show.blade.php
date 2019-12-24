@@ -12,6 +12,9 @@
                         <h2>{{ $contact->name ?? '' }}</h2>
                     </div>
                     <div class="row">
+                        <span style="font-style: italic; font-size: 1.1rem;">{{ $contact->category ?? '' }}</span>
+                    </div>
+                    <div class="row mt-3">
                         <p>{{ $contact->description ?? '' }}</p>
                     </div>
                 </div>

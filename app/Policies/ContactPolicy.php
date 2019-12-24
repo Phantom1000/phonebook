@@ -77,9 +77,9 @@ class ContactPolicy
      * @param  \App\Contact  $contact
      * @return mixed
      */
-    public function delete(User $user, Contact $contact)
+    public function delete(User $user, Contact $contact, $pub)
     {
-        //
+        return $pub == 'my' && Auth::check() && $user->contacts->contains($contact);
     }
 
     /**

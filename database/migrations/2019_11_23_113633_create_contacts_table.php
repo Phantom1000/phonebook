@@ -18,6 +18,7 @@ class CreateContactsTable extends Migration
             $table->string('name');
             $table->string('photo')->nullable();
             $table->text('description')->nullable();
+            $table->string('category')->default('Физическое лицо');
             $table->boolean('isPublic')->default(false);
             $table->timestamps();
         });

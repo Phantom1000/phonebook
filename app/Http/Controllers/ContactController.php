@@ -8,6 +8,7 @@ use App\Location;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class ContactController extends Controller
 {
@@ -18,15 +19,32 @@ class ContactController extends Controller
      */
     public function index(Request $request, $pub = '')
     {
+        $cats = $request->categories ? $request->categories : [];
+        $sort = null;
+        $search = null;
+        info($request->categories);
         if ($pub == 'my') {
             if (Auth::check()) {
                 $contacts = $request->user()->contacts();
+                if ($request->categories) {
+                    foreach ($request->categories as $cat) {
+                        if ($cat == 'individual') {
+                            $contacts = $contacts->where('category', 'Физическое лицо');
+                        }
+                        if ($cat == 'entity') {
+                            $contacts = $contacts->where('category', 'Юридическое лицо');
+                        }
+                    }
+                }
                 if ($request->sort == 'name') {
                     $contacts = $contacts->orderBy('name', 'asc');
+                    $sort = 'name';
                 } else {
                     $contacts = $contacts->orderBy('created_at', 'desc');
+                    $sort = 'date';
                 }
                 if ($request->q) {
+                    $search = $request->q;
                     $contacts = $contacts->where('name', 'like', '%' . $request->q . '%');
                 }
             } else {
@@ -34,17 +52,30 @@ class ContactController extends Controller
             }
         } else {
             $contacts = Contact::where('isPublic', $pub != 'my');
+            if ($request->categories) {
+                foreach ($request->categories as $cat) {
+                    if ($cat == 'individual') {
+                        $contacts = $contacts->where('category', 'Физическое лицо');
+                    }
+                    if ($cat == 'entity') {
+                        $contacts = $contacts->where('category', 'Юридическое лицо');
+                    }
+                }
+            }
             if ($request->sort == 'name') {
                 $contacts = $contacts->orderBy('name', 'asc');
+                $sort = 'name';
             } else {
                 $contacts = $contacts->orderBy('created_at', 'desc');
+                $sort = 'date';
             }
             if ($request->q) {
+                $search = $request->q;
                 $contacts = $contacts->where('name', 'like', '%' . $request->q . '%');
             }
         }
-        $contacts = $contacts->paginate(2);
-        return view('contacts.index', compact('contacts', 'pub'));
+        $contacts = $contacts->paginate(5);
+        return view('contacts.index', compact('contacts', 'pub', 'cats', 'sort', 'search'));
     }
 
     /**
@@ -223,6 +254,11 @@ class ContactController extends Controller
     public function add(Contact $contact, Request $request)
     {
         if ($contact->isPublic) $contact->users()->attach($request->user());
+        return redirect()->route('contact.index');
+    }
+
+    public function delete(Contact $contact, Request $request) {
+        if ($contact->isPublic) $contact->users()->detach($request->user());
         return redirect()->route('contact.index');
     }
     /**
