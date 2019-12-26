@@ -17,6 +17,31 @@ class ContactController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private function filter($contacts, $request, &$sort, &$search) {
+        if ($request->categories) {
+            foreach ($request->categories as $cat) {
+                if ($cat == 'individual') {
+                    $contacts = $contacts->where('category', 'Физическое лицо');
+                }
+                if ($cat == 'entity') {
+                    $contacts = $contacts->where('category', 'Юридическое лицо');
+                }
+            }
+        }
+        if ($request->sort == 'name') {
+            $contacts = $contacts->orderBy('name', 'asc');
+            $sort = 'name';
+        } else {
+            $contacts = $contacts->orderBy('created_at', 'desc');
+            $sort = 'date';
+        }
+        if ($request->q) {
+            $search = $request->q;
+            $contacts = $contacts->where('name', 'like', '%' . $request->q . '%');
+        }
+
+    }
+
     public function index(Request $request, $pub = '')
     {
         $cats = $request->categories ? $request->categories : [];
@@ -26,53 +51,13 @@ class ContactController extends Controller
         if ($pub == 'my') {
             if (Auth::check()) {
                 $contacts = $request->user()->contacts();
-                if ($request->categories) {
-                    foreach ($request->categories as $cat) {
-                        if ($cat == 'individual') {
-                            $contacts = $contacts->where('category', 'Физическое лицо');
-                        }
-                        if ($cat == 'entity') {
-                            $contacts = $contacts->where('category', 'Юридическое лицо');
-                        }
-                    }
-                }
-                if ($request->sort == 'name') {
-                    $contacts = $contacts->orderBy('name', 'asc');
-                    $sort = 'name';
-                } else {
-                    $contacts = $contacts->orderBy('created_at', 'desc');
-                    $sort = 'date';
-                }
-                if ($request->q) {
-                    $search = $request->q;
-                    $contacts = $contacts->where('name', 'like', '%' . $request->q . '%');
-                }
+                $this->filter($contacts, $request, $sort, $search);
             } else {
                 return redirect()->route('login');
             }
         } else {
             $contacts = Contact::where('isPublic', $pub != 'my');
-            if ($request->categories) {
-                foreach ($request->categories as $cat) {
-                    if ($cat == 'individual') {
-                        $contacts = $contacts->where('category', 'Физическое лицо');
-                    }
-                    if ($cat == 'entity') {
-                        $contacts = $contacts->where('category', 'Юридическое лицо');
-                    }
-                }
-            }
-            if ($request->sort == 'name') {
-                $contacts = $contacts->orderBy('name', 'asc');
-                $sort = 'name';
-            } else {
-                $contacts = $contacts->orderBy('created_at', 'desc');
-                $sort = 'date';
-            }
-            if ($request->q) {
-                $search = $request->q;
-                $contacts = $contacts->where('name', 'like', '%' . $request->q . '%');
-            }
+            $this->filter($contacts, $request, $sort, $search);
         }
         $contacts = $contacts->paginate(5);
         return view('contacts.index', compact('contacts', 'pub', 'cats', 'sort', 'search'));

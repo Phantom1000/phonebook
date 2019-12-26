@@ -23,8 +23,21 @@
                     <div class="form-group my-4">
                         <label for="category">Категория: </label>
                         <select class="form-control" id="category" name="category">
-                            <option>Физическое лицо</option>
-                            <option>Юридическое лицо</option>
+                            @if (isset($contact->category))
+                                @if ($contact->category == 'Физическое лицо')
+                                    <option selected>Физическое лицо</option>
+                                @else
+                                    <option>Физическое лицо</option>
+                                @endif
+                                @if ($contact->category == 'Юридическое лицо')
+                                    <option selected>Юридическое лицо</option>
+                                @else
+                                    <option>Юридическое лицо</option>
+                                @endif
+                            @else
+                                <option>Физическое лицо</option>
+                                <option>Юридическое лицо</option>                        
+                            @endif
                         </select>
                     </div>
                 </div>
