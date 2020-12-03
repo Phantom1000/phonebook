@@ -1911,31 +1911,32 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
-      locations: [],
-      countries: []
+      locations: []
     };
   },
-  props: ['source1', 'source2', 'source3'],
+  props: ['source'],
   mounted: function mounted() {
-    this.locations.push(this.source1);
-    this.locations.push(this.source2);
-    this.locations.push(this.source3);
+    this.locations = this.source;
   },
   methods: {
     addLocation: function addLocation() {
-      this.locations[0].push('');
-      this.locations[1].push('');
-      this.locations[2].push('');
+      var n = {
+        country: "",
+        town: "",
+        address: ""
+      };
+      this.locations.push(n);
     },
     deleteLocation: function deleteLocation(index) {
-      this.locations[0].splice(index, 1);
-      this.locations[1].splice(index, 1);
-      this.locations[2].splice(index, 1);
+      this.locations.splice(index, 1);
+    }
+  },
+  computed: {
+    jsonLocations: function jsonLocations() {
+      return JSON.stringify(this.locations);
     }
   }
 });
@@ -37674,29 +37675,13 @@ var render = function() {
   return _c(
     "div",
     [
-      _vm._l(_vm.locations[0], function(location, index) {
-        return _c("div", { staticClass: "form-group pt-2" }, [
-          _c("input", {
-            directives: [
-              {
-                name: "model",
-                rawName: "v-model",
-                value: _vm.locations[0][index],
-                expression: "locations[0][index]"
-              }
-            ],
-            attrs: { type: "hidden", name: "locs[0][]" },
-            domProps: { value: _vm.locations[0][index] },
-            on: {
-              input: function($event) {
-                if ($event.target.composing) {
-                  return
-                }
-                _vm.$set(_vm.locations[0], index, $event.target.value)
-              }
-            }
-          }),
-          _vm._v(" "),
+      _c("input", {
+        attrs: { type: "hidden", name: "locs" },
+        domProps: { value: _vm.jsonLocations }
+      }),
+      _vm._v(" "),
+      _vm._l(_vm.locations, function(location, index) {
+        return _c("div", { key: index, staticClass: "form-group pt-2" }, [
           _c("div", { staticClass: "row" }, [
             _c("div", { staticClass: "col-sm-1" }, [
               _c(
@@ -37722,45 +37707,28 @@ var render = function() {
                   {
                     name: "model",
                     rawName: "v-model",
-                    value: _vm.locations[0][index],
-                    expression: "locations[0][index]"
+                    value: _vm.locations[index].country,
+                    expression: "locations[index].country"
                   }
                 ],
                 staticClass: "form-control",
                 attrs: { type: "text", id: "country", placeholder: "Страна" },
-                domProps: { value: _vm.locations[0][index] },
+                domProps: { value: _vm.locations[index].country },
                 on: {
                   input: function($event) {
                     if ($event.target.composing) {
                       return
                     }
-                    _vm.$set(_vm.locations[0], index, $event.target.value)
+                    _vm.$set(
+                      _vm.locations[index],
+                      "country",
+                      $event.target.value
+                    )
                   }
                 }
               })
             ])
           ]),
-          _vm._v(" "),
-          _c("input", {
-            directives: [
-              {
-                name: "model",
-                rawName: "v-model",
-                value: _vm.locations[1][index],
-                expression: "locations[1][index]"
-              }
-            ],
-            attrs: { type: "hidden", name: "locs[1][]" },
-            domProps: { value: _vm.locations[1][index] },
-            on: {
-              input: function($event) {
-                if ($event.target.composing) {
-                  return
-                }
-                _vm.$set(_vm.locations[1], index, $event.target.value)
-              }
-            }
-          }),
           _vm._v(" "),
           _c("div", { staticClass: "row" }, [
             _vm._m(1, true),
@@ -37771,45 +37739,24 @@ var render = function() {
                   {
                     name: "model",
                     rawName: "v-model",
-                    value: _vm.locations[1][index],
-                    expression: "locations[1][index]"
+                    value: _vm.locations[index].town,
+                    expression: "locations[index].town"
                   }
                 ],
                 staticClass: "form-control",
                 attrs: { type: "text", id: "town", placeholder: "Город" },
-                domProps: { value: _vm.locations[1][index] },
+                domProps: { value: _vm.locations[index].town },
                 on: {
                   input: function($event) {
                     if ($event.target.composing) {
                       return
                     }
-                    _vm.$set(_vm.locations[1], index, $event.target.value)
+                    _vm.$set(_vm.locations[index], "town", $event.target.value)
                   }
                 }
               })
             ])
           ]),
-          _vm._v(" "),
-          _c("input", {
-            directives: [
-              {
-                name: "model",
-                rawName: "v-model",
-                value: _vm.locations[2][index],
-                expression: "locations[2][index]"
-              }
-            ],
-            attrs: { type: "hidden", name: "locs[2][]" },
-            domProps: { value: _vm.locations[2][index] },
-            on: {
-              input: function($event) {
-                if ($event.target.composing) {
-                  return
-                }
-                _vm.$set(_vm.locations[2], index, $event.target.value)
-              }
-            }
-          }),
           _vm._v(" "),
           _c("div", { staticClass: "row" }, [
             _vm._m(2, true),
@@ -37820,19 +37767,23 @@ var render = function() {
                   {
                     name: "model",
                     rawName: "v-model",
-                    value: _vm.locations[2][index],
-                    expression: "locations[2][index]"
+                    value: _vm.locations[index].address,
+                    expression: "locations[index].address"
                   }
                 ],
                 staticClass: "form-control",
                 attrs: { type: "text", id: "address", placeholder: "Адрес" },
-                domProps: { value: _vm.locations[2][index] },
+                domProps: { value: _vm.locations[index].address },
                 on: {
                   input: function($event) {
                     if ($event.target.composing) {
                       return
                     }
-                    _vm.$set(_vm.locations[2], index, $event.target.value)
+                    _vm.$set(
+                      _vm.locations[index],
+                      "address",
+                      $event.target.value
+                    )
                   }
                 }
               })
@@ -37909,7 +37860,7 @@ var render = function() {
     "div",
     [
       _vm._l(_vm.phones, function(phone, index) {
-        return _c("div", { staticClass: "form-group row pt-2" }, [
+        return _c("div", { key: index, staticClass: "form-group row pt-2" }, [
           _c("input", {
             directives: [
               {

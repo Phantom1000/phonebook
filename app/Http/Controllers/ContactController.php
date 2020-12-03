@@ -17,7 +17,8 @@ class ContactController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    private function filter($contacts, $request, &$sort, &$search) {
+    private function filter($contacts, $request, &$sort, &$search)
+    {
         if ($request->categories) {
             foreach ($request->categories as $cat) {
                 if ($cat == 'individual') {
@@ -39,7 +40,6 @@ class ContactController extends Controller
             $search = $request->q;
             $contacts = $contacts->where('name', 'like', '%' . $request->q . '%');
         }
-
     }
 
     public function index(Request $request, $pub = '')
@@ -107,21 +107,22 @@ class ContactController extends Controller
 
         if ($request->nums)
             foreach ($request->nums as $num) {
-            Phone::create([
-                'number' => $num,
-                'contact_id' => $contact->id
-            ]);
-        }
+                Phone::create([
+                    'number' => $num,
+                    'contact_id' => $contact->id
+                ]);
+            }
 
-        if ($request->locs)
-            for ($i = 0, $n = count($request->locs[0]); $i < $n; $i++) {
-            Location::create([
-                'country' => $request->locs[0][$i],
-                'town' => $request->locs[1][$i],
-                'address' => $request->locs[2][$i],
-                'contact_id' => $contact->id
-            ]);
-        }
+        $locations = json_decode($request->locs);
+        if (isset($locations))
+            for ($i = 0, $n = count($locations); $i < $n; $i++) {
+                Location::create([
+                    'country' => $locations[$i]->country,
+                    'town' => $locations[$i]->town,
+                    'address' => $locations[$i]->address,
+                    'contact_id' => $contact->id
+                ]);
+            }
 
         return redirect()->route('contact.index', ['pub' => !$request->user()->isAdmin ? 'my' : '']);
     }
@@ -146,10 +147,8 @@ class ContactController extends Controller
     public function edit(Contact $contact)
     {
         $numbers = $contact->phones()->pluck('number');
-        $countries = $contact->locations()->pluck('country');
-        $towns = $contact->locations()->pluck('town');
-        $addresses = $contact->locations()->pluck('address');
-        return view('contacts.edit', compact('contact', 'numbers', 'countries', 'towns', 'addresses'));
+        $locations = json_encode($contact->locations);
+        return view('contacts.edit', compact('contact', 'numbers', 'locations'));
     }
 
     /**
@@ -201,10 +200,10 @@ class ContactController extends Controller
             }
         }
 
-        if ($request->locs)
-        {
-            $locations = $contact->locations()->get();
-            $n = $countLocs = count($request->locs[0]);
+        $locs = json_decode($request->locs);
+        if (isset($locs)) {
+            $locations = $contact->locations;
+            $n = $countLocs = count($locs);
             $m = $countLocations = count($locations);
             $flag = true;
             if ($countLocs < $countLocations) {
@@ -215,21 +214,21 @@ class ContactController extends Controller
             for ($i = 0; $i < $n; $i++) {
                 if ($i < $m) {
                     $locations[$i]->update([
-                        'country' => $request->locs[0][$i],
-                        'town' => $request->locs[1][$i],
-                        'address' => $request->locs[2][$i],
+                        'country' => $locs[$i]->country,
+                        'town' => $locs[$i]->town,
+                        'address' => $locs[$i]->address,
                     ]);
                 } else {
                     if ($flag) {
                         Location::create([
-                        'country' => $request->locs[0][$i],
-                        'town' => $request->locs[1][$i],
-                        'address' => $request->locs[2][$i],
-                        'contact_id' => $contact->id
+                            'country' => $locs[$i]->country,
+                            'town' => $locs[$i]->town,
+                            'address' => $locs[$i]->address,
+                            'contact_id' => $contact->id
                         ]);
                     } else {
                         $locations[$i]->delete();
-                    }   
+                    }
                 }
             }
         }
@@ -242,7 +241,8 @@ class ContactController extends Controller
         return redirect()->route('contact.index');
     }
 
-    public function delete(Contact $contact, Request $request) {
+    public function delete(Contact $contact, Request $request)
+    {
         if ($contact->isPublic) $contact->users()->detach($request->user());
         return redirect()->route('contact.index');
     }

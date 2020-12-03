@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="form-group row pt-2" v-for="(phone, index) in phones">
+        <div class="form-group row pt-2" v-for="(phone, index) in phones" :key="index">
             <input type="hidden" name="nums[]" v-model="phones[index]">
             <div class="col-sm-2 text-right">
                 <label for="number">Номер телефона: </label>

@@ -62,7 +62,7 @@
         </div>
 
         <div class="tab-pane fade" id="locations" role="tabpanel" aria-labelledby="locations-tab">
-            <locations-component :source1="{{ $countries ?? '[]' }}" :source2="{{ $towns ?? '[]' }}" :source3="{{ $addresses ?? '[]' }}"></locations-component>
+            <locations-component :source="{{ $locations ?? '[]' }}"></locations-component>
         </div>
         <div class="form-group">
             <button class="btn btn-success">Сохранить</button>

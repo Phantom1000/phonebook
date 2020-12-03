@@ -14,5 +14,9 @@ services:
       - mysql-data:/var/lib/mysql:rw
     ports:
       - 3306:3306
+  queue:
+    image: redis:5-alpine
+    ports:
+      - 6379:6379
 volumes:
   mysql-data: # nothing necessary here, let Docker manage the storage
